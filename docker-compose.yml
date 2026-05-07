@@ -1,7 +1,7 @@
 services:
   supervision:
     build: .
-    container_name: supervision
+    container_name: app5_supervision
     restart: unless-stopped
 
     # ── Accès aux métriques système du VPS host ──────────────────────────
@@ -17,24 +17,24 @@ services:
       - "traefik.enable=true"
 
       # ── Router HTTPS ───────────────────────────────────────────────────
-      - "traefik.http.routers.supervision.rule=Host(`supervision.app-coeuressonne.fr`)"
-      - "traefik.http.routers.supervision.entrypoints=websecure"
-      - "traefik.http.routers.supervision.tls=true"
-      - "traefik.http.routers.supervision.tls.certresolver=myresolver"  # ← Ton certresolver
+      - "traefik.http.routers.app5.rule=Host(`supervision.app-coeuressonne.fr`)"
+      - "traefik.http.routers.app5.entrypoints=websecure"
+      - "traefik.http.routers.app5.tls=true"
+      - "traefik.http.routers.app5.tls.certresolver=myresolver"  # ← Ton certresolver
 
       # ── Redirection HTTP → HTTPS ───────────────────────────────────────
-      - "traefik.http.routers.supervision-http.rule=Host(`supervision.app-coeuressonne.fr`)"
-      - "traefik.http.routers.supervision-http.entrypoints=web"
-      - "traefik.http.routers.supervision-http.middlewares=redirect-https"
+      - "traefik.http.routers.app5-http.rule=Host(`supervision.app-coeuressonne.fr`)"
+      - "traefik.http.routers.app5-http.entrypoints=web"
+      - "traefik.http.routers.app5-http.middlewares=redirect-https"
       - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
 
       # ── Auth basique (générer avec : htpasswd -nb admin motdepasse) ────
-      - "traefik.http.routers.supervision.middlewares=supervision-auth"
-      - "traefik.http.middlewares.supervision-auth.basicauth.users=admin:$$apr1$$8z7vayl4$$9ySf9So43N9WxX9dU/J1H1"
+      - "traefik.http.routers.app5.middlewares=supervision-auth"
+      - "traefik.http.middlewares.app5-auth.basicauth.users=admin:$$apr1$$8z7vayl4$$9ySf9So43N9WxX9dU/J1H1"
       # ↑ Remplace par le hash généré. Les $ doivent être doublés en YAML.
 
       # ── Service ────────────────────────────────────────────────────────
-      - "traefik.http.services.supervision.loadbalancer.server.port=8000"
+      - "traefik.http.services.app5.loadbalancer.server.port=8000"
 
 networks:
   traefik_app3:
