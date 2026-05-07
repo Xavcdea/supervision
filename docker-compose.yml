@@ -10,7 +10,7 @@ services:
       - /proc:/host/proc:ro   # Lecture des infos système hôte (optionnel si pid:host suffit)
 
     networks:
-      - traefik_app3  # ← Nom du réseau Traefik
+      - traefik_app5  # ← Nom du réseau Traefik
 
     labels:
       # Activer Traefik
@@ -37,6 +37,6 @@ services:
       - "traefik.http.services.supervision.loadbalancer.server.port=8000"
 
 networks:
-  traefik_app3:
+  traefik_app5:
     external: true
     # ↑ Doit correspondre au réseau externe de ton Traefik existant
