@@ -1,0 +1,42 @@
+services:
+  supervision:
+    build: .
+    container_name: supervision
+    restart: unless-stopped
+
+    # ── Accès aux métriques système du VPS host ──────────────────────────
+    pid: "host"          # Permet de voir les processus du host
+    volumes:
+      - /proc:/host/proc:ro   # Lecture des infos système hôte (optionnel si pid:host suffit)
+
+    networks:
+      - traefik_app3  # ← Nom du réseau Traefik
+
+    labels:
+      # Activer Traefik
+      - "traefik.enable=true"
+
+      # ── Router HTTPS ───────────────────────────────────────────────────
+      - "traefik.http.routers.supervision.rule=Host(`supervision.app-coeuressonne.fr`)"
+      - "traefik.http.routers.supervision.entrypoints=websecure"
+      - "traefik.http.routers.supervision.tls=true"
+      - "traefik.http.routers.supervision.tls.certresolver=myresolver"  # ← Ton certresolver
+
+      # ── Redirection HTTP → HTTPS ───────────────────────────────────────
+      - "traefik.http.routers.supervision-http.rule=Host(`supervision.app-coeuressonne.fr`)"
+      - "traefik.http.routers.supervision-http.entrypoints=web"
+      - "traefik.http.routers.supervision-http.middlewares=redirect-https"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+
+      # ── Auth basique (générer avec : htpasswd -nb admin motdepasse) ────
+      - "traefik.http.routers.supervision.middlewares=supervision-auth"
+      - "traefik.http.middlewares.supervision-auth.basicauth.users=admin:$$apr1$$8z7vayl4$$9ySf9So43N9WxX9dU/J1H1"
+      # ↑ Remplace par le hash généré. Les $ doivent être doublés en YAML.
+
+      # ── Service ────────────────────────────────────────────────────────
+      - "traefik.http.services.supervision.loadbalancer.server.port=8000"
+
+networks:
+  traefik_app3:
+    external: true
+    # ↑ Doit correspondre au réseau externe de ton Traefik existant
