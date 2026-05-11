@@ -525,6 +525,22 @@
     </div>
   </div>
 
+  <!-- Docker Containers -->
+  <div class="card">
+    <div class="card-title"><span>◈</span> Conteneurs Docker</div>
+    <table class="proc-table">
+      <thead>
+        <tr>
+          <th>Conteneur</th>
+          <th>CPU %</th>
+          <th>RAM</th>
+          <th>RAM %</th>
+        </tr>
+      </thead>
+      <tbody id="dockerTable"></tbody>
+    </table>
+  </div>
+
   <!-- Processus -->
   <div class="card">
     <div class="card-title"><span>◈</span> Top processus — CPU</div>
@@ -563,7 +579,7 @@ function setArc(id, pct, color) {
 }
 
 function render(d) {
-  const { cpu, ram, disk, network, processes, system } = d;
+  const { cpu, ram, disk, network, processes, system, docker } = d;
 
   // Header
   document.getElementById('lastUpdate').textContent = system.timestamp;
@@ -666,6 +682,31 @@ function render(d) {
     <div class="info-row"><span class="info-key">Cœurs physiques</span><span class="info-val">${cpu.cores_physical}</span></div>
     <div class="info-row"><span class="info-key">Cœurs logiques</span><span class="info-val">${cpu.cores_logical}</span></div>
     <div class="info-row"><span class="info-key">Fréquence CPU</span><span class="info-val">${cpu.frequency_mhz || '—'} MHz</span></div>`;
+
+  // Docker containers
+  if (docker && Array.isArray(docker)) {
+    document.getElementById('dockerTable').innerHTML = docker.map(c => {
+      const cpu = parseFloat(c.CPUPerc) || 0;
+      const mem = parseFloat(c.MemPerc) || 0;
+      return `
+        <tr>
+          <td><span class="proc-name">${c.Container}</span></td>
+          <td>
+            <div class="mini-bar-wrap">
+              <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.min(cpu,100)}%;background:${colorForPct(cpu)}"></div></div>
+              <span class="mini-val">${cpu.toFixed(1)}%</span>
+            </div>
+          </td>
+          <td><span style="font-size:11px;color:var(--muted)">${c.MemUsage || '—'}</span></td>
+          <td>
+            <div class="mini-bar-wrap">
+              <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.min(mem,100)}%;background:#a78bfa"></div></div>
+              <span class="mini-val">${mem.toFixed(1)}%</span>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
 
   // Processes
   document.getElementById('procTable').innerHTML = processes.map(p => `
