@@ -1,5 +1,8 @@
 import time
 import psutil
+import subprocess
+import json
+import threading
 from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, FileResponse
@@ -8,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 app = FastAPI()
+
+docker_cache = {"containers": [], "last_update": 0}
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,6 +111,30 @@ def get_system_info():
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
+def update_docker_metrics():
+    global docker_cache
+    try:
+        result = subprocess.run(
+            ["docker", "stats", "--no-stream", "--format", "json"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            containers = json.loads(result.stdout)
+            docker_cache["containers"] = containers
+            docker_cache["last_update"] = time.time()
+    except Exception:
+        pass
+
+def get_docker_metrics():
+    return docker_cache.get("containers", [])
+
+def docker_refresh_worker():
+    while True:
+        time.sleep(10)
+        update_docker_metrics()
+
 @app.get("/api/metrics")
 def metrics():
     return {
@@ -115,6 +144,13 @@ def metrics():
         "network": get_network_metrics(),
         "processes": get_top_processes(),
         "system": get_system_info(),
+        "docker": get_docker_metrics(),
     }
+
+@app.on_event("startup")
+async def startup():
+    update_docker_metrics()
+    thread = threading.Thread(target=docker_refresh_worker, daemon=True)
+    thread.start()
 
 app.mount("/", StaticFiles(directory="/app/static", html=True), name="static")

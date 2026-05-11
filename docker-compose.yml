@@ -8,6 +8,7 @@ services:
     pid: "host"          # Permet de voir les processus du host
     volumes:
       - /proc:/host/proc:ro   # Lecture des infos système hôte (optionnel si pid:host suffit)
+      - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
       - traefik_app5  # ← Nom du réseau Traefik
