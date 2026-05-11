@@ -121,7 +121,7 @@ def update_docker_metrics():
             timeout=5
         )
         if result.returncode == 0:
-            containers = json.loads(result.stdout)
+            containers = [json.loads(line) for line in result.stdout.strip().split('\n') if line]
             docker_cache["containers"] = containers
             docker_cache["last_update"] = time.time()
     except Exception:
