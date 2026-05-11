@@ -535,6 +535,7 @@
           <th>CPU %</th>
           <th>RAM</th>
           <th>RAM %</th>
+          <th>Statut</th>
         </tr>
       </thead>
       <tbody id="dockerTable"></tbody>
@@ -690,7 +691,7 @@ function render(d) {
       const mem = parseFloat(c.MemPerc) || 0;
       return `
         <tr>
-          <td><span class="proc-name">${c.Container}</span></td>
+          <td><span class="proc-name">${c.Name}</span></td>
           <td>
             <div class="mini-bar-wrap">
               <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.min(cpu,100)}%;background:${colorForPct(cpu)}"></div></div>
@@ -704,6 +705,7 @@ function render(d) {
               <span class="mini-val">${mem.toFixed(1)}%</span>
             </div>
           </td>
+          <td><span style="font-size:10px;font-family:var(--mono);color:var(--green)">running</span></td>
         </tr>`;
     }).join('');
   }
